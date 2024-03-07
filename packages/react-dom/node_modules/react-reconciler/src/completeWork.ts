@@ -1,0 +1,90 @@
+import {
+	Container,
+	appendInitialChild,
+	createInstance,
+	createTextInstance
+} from 'hostConfig';
+import { FiberNode } from './fiber';
+import { HostComponent, HostRoot, HostText } from './workTags';
+import { NoFlags } from './fiberFlags';
+
+// 递归中的归
+export const completeWork = (wip: FiberNode) => {
+	const newProps = wip.pendingProps;
+	const current = wip.alternate;
+
+	switch (wip.tag) {
+		case HostComponent:
+			if (current !== null && wip.stateNode) {
+				// update
+			} else {
+				// 1. 构建DOM
+				// const instance = createInstance(wip.type, newProps);
+				const instance = createInstance(wip.type);
+				// 2. 将DOM插入到DOM树中
+				appendAllChildren(instance, wip);
+				wip.stateNode = instance;
+			}
+			bubbleProperties(wip);
+			return null;
+		case HostText:
+			if (current !== null && wip.stateNode) {
+				// update
+			} else {
+				// 1. 构建DOM
+				const instance = createTextInstance(newProps.content);
+				wip.stateNode = instance;
+			}
+			bubbleProperties(wip);
+			return null;
+		case HostRoot:
+			const instance = createInstance(wip.type);
+			appendAllChildren(instance, wip);
+			bubbleProperties(wip);
+			return null;
+		default:
+			if (__DEV__) {
+				console.warn('未处理的completeWork情况', wip);
+			}
+			break;
+	}
+};
+
+function appendAllChildren(parent: Container, wip: FiberNode) {
+	let node = wip.children;
+
+	while (node !== null) {
+		if (node.tag === HostComponent || node.tag === HostText) {
+			appendInitialChild(parent, node?.stateNode);
+		} else if (node.children !== null) {
+			node.children.return = node;
+			node = node.children;
+			continue;
+		}
+		if (node === wip) {
+			return;
+		}
+		while (node.sibling === null) {
+			if (node.return === null || node.return === wip) {
+				return;
+			}
+			node = node?.return;
+		}
+		node.sibling.return = node.return;
+		node = node.sibling;
+	}
+}
+
+function bubbleProperties(wip: FiberNode) {
+	let subtreeFlags = NoFlags;
+	let children = wip.children;
+
+	while (children !== null) {
+		subtreeFlags |= children.subtreeFlags;
+		subtreeFlags |= children.flags;
+
+		children.return = wip;
+		children = children.sibling;
+	}
+	wip.subtreeFlags |= subtreeFlags;
+}

@@ -15,10 +15,15 @@
         "isolatedModules": true,
         "esModuleInterop": true,
         "noEmit": true,
-        "noUnusedLocals": true,
-        "noUnusedParameters": true,
+        "noUnusedLocals": false, // 声明但未使用的变量
+        "noUnusedParameters": false, // 未使用的参数
         "noImplicitReturns": false,
         "skipLibCheck": true,
-        "baseUrl": "./packages"
+        "baseUrl": "./packages",
+        "paths": {
+            "hostConfig": [
+                "./react-dom/src/hostConfig.ts"
+            ]
+        }
     }
 }
