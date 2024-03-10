@@ -10,7 +10,7 @@ export default [
 		input: `${pkgPath}/${module}`,
 		output: {
 			file: `${pkgDistPath}/index.js`,
-			name: 'index.js',
+			name: 'React',
 			format: 'umd' //兼容commonjs，eslint
 		},
 		plugins: [
@@ -33,7 +33,7 @@ export default [
 		output: [
 			{
 				file: `${pkgDistPath}/jsx-runtime.js`,
-				name: 'jsx-runtime.js',
+				name: 'jsx-runtime',
 				format: 'umd' //兼容commonjs，eslint
 			},
 			{
