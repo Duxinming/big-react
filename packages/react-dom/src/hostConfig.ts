@@ -50,3 +50,11 @@ export function removeChild(
 ) {
 	container.removeChild(child);
 }
+
+export function insertChildToContainer(
+	child: Instance | TextInstacne,
+	container: Container,
+	before: Instance
+) {
+	container.insertBefore(child, before);
+}
