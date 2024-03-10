@@ -71,22 +71,40 @@ const commitMutationEffectsOnFiber = (finishedWork: FiberNode) => {
 	}
 };
 
+function recordHostChildremToDelete(
+	childToDelete: FiberNode[],
+	unmountFiber: FiberNode
+) {
+	// 1：找到第一个root host 节点
+	const lastOne = childToDelete[childToDelete.length - 1];
+
+	if (!lastOne) {
+		childToDelete.push(unmountFiber);
+	} else {
+		let node = lastOne.sibling;
+		while (node !== null) {
+			if (unmountFiber === node) {
+				childToDelete.push(unmountFiber);
+			}
+			node = node.sibling;
+		}
+	}
+
+	// 每找到一个 host节点，判断下这个节点是不是 1里找到的节点的兄弟节点
+}
+
 function commitDeletion(childToDelete: FiberNode) {
-	let rootHostNode: FiberNode | null = null;
+	const rootChildToDelete: FiberNode[] = [];
 
 	// 递归子树
 	commitNestedComponent(childToDelete, (unmountFiber) => {
 		switch (unmountFiber.tag) {
 			case HostComponent:
-				if (rootHostNode === null) {
-					rootHostNode = unmountFiber;
-				}
+				recordHostChildremToDelete(rootChildToDelete, unmountFiber);
 				// TODO 解绑ref
 				return;
 			case HostText:
-				if (rootHostNode === null) {
-					rootHostNode = unmountFiber;
-				}
+				recordHostChildremToDelete(rootChildToDelete, unmountFiber);
 				return;
 			case FunctionComponent:
 				// TODO useEffect unmonut
@@ -98,10 +116,12 @@ function commitDeletion(childToDelete: FiberNode) {
 		}
 	});
 	// 移除rootHostCompionent的DOM
-	if (rootHostNode !== null) {
+	if (rootChildToDelete.length !== 0) {
 		const hostParent = getHostParent(childToDelete);
 		if (hostParent !== null) {
-			removeChild((rootHostNode as FiberNode).stateNode, hostParent);
+			rootChildToDelete.forEach((node) => {
+				removeChild(node.stateNode, hostParent);
+			});
 		}
 	}
 	childToDelete.return = null;
@@ -124,6 +144,7 @@ function commitNestedComponent(
 		}
 		if (node === root) {
 			// 终止条件
+			return;
 		}
 		while (node.sibling === null) {
 			if (node.return === null || node.return === root) {
@@ -132,7 +153,7 @@ function commitNestedComponent(
 			// 向上归
 			node = node.return;
 		}
-		node.sibling.return = node;
+		node.sibling.return = node.return;
 		node = node.sibling;
 	}
 }

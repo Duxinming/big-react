@@ -2,7 +2,7 @@ import currentDispatcher, {
 	Dispatcher,
 	resolveDispatcher
 } from './src/currectDispatcher';
-import { jsx, isValidElement as isValidElementFn } from './src/jsx';
+import { jsxDEV, isValidElement as isValidElementFn } from './src/jsx';
 
 export const useState: Dispatcher['useState'] = (initialState: any) => {
 	const dispatcher = resolveDispatcher();
@@ -17,5 +17,5 @@ export const __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED = {
 export const version = '0.0.0';
 
 // TODO 根据环境区分使用jsx或jsxDEV
-export const createElement = jsx;
+export const createElement = jsxDEV;
 export const isValidElement = isValidElementFn;
